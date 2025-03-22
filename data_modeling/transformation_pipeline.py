@@ -130,7 +130,10 @@ class TransformationPipeline:
         # Preprocessor: scale numerical, impute nan values, encode categorical
         self.preprocessor = ColumnTransformer(
             transformers=[
-                ('num', StandardScaler(), numerical_cols),
+                ('num', Pipeline([
+                    ('imputer', SimpleImputer(strategy='mean')),
+                    ('scaler', StandardScaler())
+                ]), numerical_cols),
                 ('cat', Pipeline([
                     ('imputer', SimpleImputer(strategy='most_frequent')),
                     ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
