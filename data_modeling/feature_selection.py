@@ -1,46 +1,38 @@
 import pandas as pd
 import numpy as np
-from sklearn.feature_selection import SelectKBest, chi2, RFE
-from sklearn.linear_model import LogisticRegression
+from sklearn.calibration import LinearSVC
+from sklearn.feature_selection import RFE
 
-'''
-This function is meant feature selection using chi-square for categorical features and RFE for numerical features.
-I tried using this approach on top of the cleaned and transformed dataset, but it seems to be too aggressive.
-It removes too many features which reduces the model's performance significantly.
-'''
-def perform_feature_selection(X: pd.DataFrame, y: pd.Series, top_k_cat=20, top_k_num=5):
-    print("\n--- Running feature selection ---")
+def perform_feature_selection(X, y, all_feature_names, top_k_all=150):
+    print("\n--- Running RFE on all features ---")
 
-    # Separate categorical and numerical columns
-    # Explicitly declare the known numeric columns
-    num_cols = ['TIME', 'LATITUDE', 'LONGITUDE']
-    # Everything else is treated as categorical
-    cat_cols = [col for col in X.columns if col not in num_cols]
+    # Convert to DataFrame if necessary
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X, columns=all_feature_names)
 
-    # One-hot encode categorical columns for chi-square
-    X_cat_encoded = pd.get_dummies(X[cat_cols], drop_first=True)
-    X_cat_encoded = X_cat_encoded.astype(np.float64)  # Ensure numeric type
-
-    # Remove any columns with negative values for chi-square
-    X_cat_encoded = X_cat_encoded.loc[:, (X_cat_encoded >= 0).all()]
-
-    print(f"\nChi2 will use {X_cat_encoded.shape[1]} one-hot encoded features")
-
-    chi_selector = SelectKBest(score_func=chi2, k=min(top_k_cat, X_cat_encoded.shape[1]))
-    chi_selector.fit(X_cat_encoded, y)
-    chi_selected = X_cat_encoded.columns[chi_selector.get_support()].tolist()
-
-    # RFE on numerical features
-    print("\nRunning RFE on numerical columns...")
-    X_num = X[num_cols]
-    model = LogisticRegression(max_iter=1000)
-    rfe = RFE(model, n_features_to_select=min(top_k_num, X_num.shape[1]))
-    rfe.fit(X_num, y)
-    rfe_selected = X_num.columns[rfe.support_].tolist()
-
-    selected_features = chi_selected + rfe_selected
+    estimator = LinearSVC(max_iter=5000, dual=False)
+    rfe = RFE(estimator, n_features_to_select=top_k_all)
+    X_selected_array = rfe.fit_transform(X, y)
+    selected_features = [all_feature_names[i] for i in rfe.get_support(indices=True)]
 
     print(f"\nFinal selected feature count: {len(selected_features)}")
-    print(f"\nSelected features: {selected_features}")
+    print("Selected features:", selected_features)
 
-    return X[selected_features].copy(), selected_features
+    return pd.DataFrame(X_selected_array, columns=selected_features), selected_features
+
+# print("\n--- Running Chi-square on categorical features ---")
+# cat_cols = [col for col in X.columns if col not in NUMERICAL_COLUMNS]
+# chi_selector = SelectKBest(score_func=chi2, k=min(top_k_cat, len(cat_cols)))
+# X_cat_selected_array = chi_selector.fit_transform(X[cat_cols], y)
+# selected_cat_features = [cat_cols[i] for i in chi_selector.get_support(indices=True)]
+
+# print("\n--- Running Mutual Info on categorical features ---")
+# mi_selector = SelectKBest(score_func=mutual_info_classif, k=min(top_k_cat, len(cat_cols)))
+# X_cat_selected_array = mi_selector.fit_transform(X[cat_cols], y)
+# selected_cat_features = [cat_cols[i] for i in mi_selector.get_support(indices=True)]
+
+# print("\n--- Running RFE on numerical features ---")
+# estimator = LinearSVC(max_iter=5000, dual=False)
+# rfe = RFE(estimator, n_features_to_select=min(top_k_num, len(num_cols)))
+# X_num_selected_array = rfe.fit_transform(X[num_cols], y)
+# selected_num_features = [num_cols[i] for i in rfe.get_support(indices=True)]
