@@ -35,12 +35,13 @@ X_test_transformed = transformer.transform(X_test_raw)
 # X_test_selected = X_test_transformed[selected_features]
 
 # Handle class imbalance in the training set with SMOTE
-print("\nBefore SMOTE:\n", y_train.value_counts())
+print("\nTraining values before SMOTE:\n", y_train.value_counts())
 # X_train_balanced, y_train_balanced = SMOTE(random_state=93).fit_resample(X_train_selected, y_train)
 X_train_balanced, y_train_balanced = SMOTE(random_state=93).fit_resample(X_train_transformed, y_train)
-print("\nAfter SMOTE:\n", y_train_balanced.value_counts())
+print("\nTraining values after SMOTE:\n", y_train_balanced.value_counts())
 
 # Train a Simple SVM
+print("\n--- Training the SVM model ---")
 model = SVC(kernel='rbf', C=10, gamma=0.01, class_weight='balanced', random_state=93)
 model.fit(X_train_balanced, y_train_balanced)
 

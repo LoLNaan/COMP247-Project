@@ -29,13 +29,17 @@ class CleaningPipeline:
     irrelevant_columns = identifier_columns + [
         # The direction the vehicle was travelling to is not relevant
         'INITDIR',
-        # We don't need to consider the exact streets where the collision happened, we already have other features for location
+        # We don't need to consider the exact streets where the collision happened, we already have other broader features for location
         'STREET1',
         'STREET2',
+        # 'OFFSET' is another location-specific category that's not really helpful, it also has 79.8% missing data (close enough to 80%)
+        'OFFSET',
         # The police division is not relevant
         'DIVISION',
         # This is just a label for HOOD_158
         'NEIGHBOURHOOD_158',
+        # We already have binary columns for the type of vehicle involved ('AUTOMOBILE', 'MOTORCYCLE', 'TRUCK', 'TRSN_CITY_VEH', 'EMERG_VEH')
+        'VEHTYPE',
         # The severity of the injury is just another way to describe the target variable
         'INJURY'
     ]
@@ -68,7 +72,7 @@ class CleaningPipeline:
         # Drop irrelevant columns and unique identifiers
         df = df.drop(columns=self.irrelevant_columns)
 
-        print("\nIrrelevant columns dropped:", self.irrelevant_columns)
+        print("\nIrrelevant and redundant columns dropped:", self.irrelevant_columns)
 
         # Drop deprecated columns
         df = df.drop(columns=self.deprecated_columns)
