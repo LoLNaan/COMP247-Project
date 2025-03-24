@@ -154,6 +154,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import gaussian_kde
 
+dpi = 300
+
 # Some macros for creating the graphs, plots and heatmap.
 def stacked_hist(df, column, title, xlabel, ylabel, figsize=(12, 4)):
     """
@@ -170,8 +172,9 @@ def stacked_hist(df, column, title, xlabel, ylabel, figsize=(12, 4)):
         df[column] = pd.Categorical(df[column], categories=days_order, ordered=True)
         df = df.sort_values(column)
 
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     crosstab = pd.crosstab(df[column], df['ACCLASS'])
-    ax = crosstab.plot(kind='bar', stacked=True, figsize=figsize)
+    crosstab.plot(kind='bar', stacked=True, ax=ax)
 
     for p in ax.patches:
         width, height = p.get_width(), p.get_height()
@@ -199,7 +202,7 @@ def hbar(df, column, title, xlabel, ylabel, figsize=(12, 8)):
     figsize (tuple): The size of the figure (width, height).
     """
     value_counts = df[column].value_counts()
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, dpi=dpi)
     ax = sns.barplot(x=value_counts.values, y=value_counts.index)
     for i, value in enumerate(value_counts.values):
         ax.text(value + 5, i, str(value), va='center', fontweight='bold')
@@ -220,7 +223,7 @@ def plot_age_distribution(df=df1, age_column='INVAGE', hue_column='ACCLASS', fig
             return int(age_label.split(" ")[0])
 
     sorted_labels = sorted(df[age_column].unique(), key=extract_numeric)
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, dpi=dpi)
     ax = sns.countplot(data=df, x=age_column, order=sorted_labels, hue=hue_column)
     for p in ax.patches:
         height = p.get_height()
@@ -258,7 +261,7 @@ def map_accidents(df, grid_resolution=100, density_threshold=0.5, dot_size=5, fi
     legend_fontsize = 12
 
     # Plot 1: Scatter plot of all accidents with high-density circle
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, dpi=dpi)
     non_fatal = df[df[accident_col] == 'Non-Fatal']
     fatal = df[df[accident_col] == 'Fatal']
 
@@ -284,7 +287,7 @@ def map_accidents(df, grid_resolution=100, density_threshold=0.5, dot_size=5, fi
     plt.title('Location of Accidents', fontsize=title_fontsize)
     plt.xlabel(lon_col, fontsize=axis_fontsize)
     plt.ylabel(lat_col, fontsize=axis_fontsize)
-    plt.grid(True, linestyle='--', alpha=grid_line_alpha, color='black')
+    plt.grid(True, linestyle='--', alpha=grid_line_alpha/2, color='black')
     plt.legend(title='Legend',
                fontsize=legend_fontsize,
                markerscale=markerscale,
@@ -295,7 +298,7 @@ def map_accidents(df, grid_resolution=100, density_threshold=0.5, dot_size=5, fi
     plt.show()
 
     # Plot 2: Accident density heatmap.
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, dpi=dpi)
     grid_x, grid_y = np.mgrid[
         df[lon_col].min():df[lon_col].max():grid_resolution * 1j,
         df[lat_col].min():df[lat_col].max():grid_resolution * 1j
@@ -308,7 +311,7 @@ def map_accidents(df, grid_resolution=100, density_threshold=0.5, dot_size=5, fi
     plt.title('Accident Density Heatmap', fontsize=title_fontsize)
     plt.xlabel(lon_col, fontsize=axis_fontsize)
     plt.ylabel(lat_col, fontsize=axis_fontsize)
-    plt.grid(True, linestyle='--', alpha=grid_line_alpha, color='white')
+    plt.grid(True, linestyle='--', alpha=grid_line_alpha/5, color='white')
     plt.legend(title='Legend',
                framealpha=1,
                fontsize=legend_fontsize,
