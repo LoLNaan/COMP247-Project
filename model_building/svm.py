@@ -42,7 +42,7 @@ print("\nTraining values after SMOTE:\n", y_train_balanced.value_counts())
 
 # Train a Simple SVM
 print("\n--- Training the SVM model ---")
-model = SVC(kernel='rbf', C=10, gamma=0.01, class_weight='balanced', random_state=93)
+model = SVC(kernel='rbf', C=10, gamma=0.1, class_weight='balanced', random_state=93)
 model.fit(X_train_balanced, y_train_balanced)
 
 # Evaluate the model
