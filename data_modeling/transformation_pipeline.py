@@ -97,6 +97,66 @@ class CategoryMapper(BaseEstimator, TransformerMixin):
         }
         df['RDSFCOND'] = df['RDSFCOND'].replace(road_condition_mapping)
 
+        # Simplify INVTYPE redundant categories
+        invtype_mapping = {
+            'Motorcycle Driver': 'Driver',
+            'Driver': 'Driver',
+            'Passenger': 'Passenger',
+            'Pedestrian': 'Pedestrian',
+            'Other': 'Other',
+            'Cyclist': 'Cyclist',
+            'Vehicle Owner': 'Owner',
+            'Driver - Not Hit': 'Driver',
+            'Other Property Owner': 'Owner',
+            'Wheelchair': 'Wheelchair',
+            'Truck Driver': 'Driver',
+            'Motorcycle Passenger': 'Passenger',
+            'Moped Driver': 'Driver',
+            'In-Line Skater': 'Cyclist',
+            'Trailer Owner': 'Owner',
+            'Moped Passenger': 'Passenger',
+            'Cyclist Passenger': 'Passenger',
+            'Pedestrian - Not Hit': 'Pedestrian',
+            'Witness': 'Witness',
+        }
+        df['INVTYPE'] = df['INVTYPE'].replace(invtype_mapping)
+
+        # Simplify VEHTYPE
+        vehicule_type_mapping = {
+            'Motorcycle': 'Motorcycle',
+            'Automobile, Station Wagon': 'Automobile',
+            'Other': 'Other',
+            'Pick Up Truck': 'Truck',
+            'Bicycle': 'Bicycle',
+            'Municipal Transit Bus (TTC)': 'Bus',
+            'Intercity Bus': 'Bus',
+            'Unknown': 'Other',
+            'Truck - Open': 'Truck',
+            'Taxi': 'Automobile',
+            'Truck - Dump': 'Truck',
+            'Passenger Van': 'Van',
+            'Truck - Closed (Blazer, etc)': 'Truck',
+            'Delivery Van': 'Van',
+            'Police Vehicle': 'Emergency',
+            'Tow Truck': 'Truck',
+            'Truck-Tractor': 'Truck',
+            'Truck (other)': 'Truck',
+            'Off Road - 4 Wheels': 'Off Road',
+            'Construction Equipment': 'Construction',
+            'Bus (Other) (Go Bus, Gray Coa': 'Bus',
+            'Street Car': 'Street Car',
+            'Moped': 'Moped',
+            'Truck - Tank': 'Truck',
+            'Other Emergency Vehicle': 'Emergency',
+            'Fire Vehicle': 'Emergency',
+            'School Bus': 'Bus',
+            'Off Road - 2 Wheels': 'Off Road',
+            'Truck - Car Carrier': 'Truck',
+            'Ambulance': 'Emergency',
+            'Rickshaw': 'Other'
+        }
+        df['VEHTYPE'] = df['VEHTYPE'].replace(vehicule_type_mapping)
+
         # Simplify INVAGE to 'Child', 'Teen', 'Young Adult', 'Adult', 'Senior', 'Elderly', 'Unknown' (broader age groups)
         age_mapping = {
             '0 to 4': 'Child',
