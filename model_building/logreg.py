@@ -1,6 +1,6 @@
 import pandas as pd
 import joblib
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from imblearn.over_sampling import SMOTE
@@ -45,24 +45,24 @@ print("\nTesting values before SMOTE:\n", y_test.value_counts())
 X_test_balanced, y_test_balanced = SMOTE(random_state=93).fit_resample(X_test_selected, y_test)
 print("\nTesting values after SMOTE:\n", y_test_balanced.value_counts())
 
-# Train a logistic regression model
-iterations = [100, 200, 500, 1000, 2000, 5000]
+
+# Setup model parameters
+iterations = list(range(500, 6000, 500)) # 500 to 5500 in steps of 500
 c = [0.001, 0.01, 0.1, 1, 10, 100]
-tol = [1e-3] # reduced tolerance to make program run faster, and manual testing showed higher precision did not improve results
+tol = 1e-3
+
 param_grid = [
     {   # L1 Regularization (works with only liblinear or saga)
         'penalty': ['l1'],
         'solver': ['liblinear', 'saga'],
         'C': c,
         'max_iter': iterations,
-        'tol': tol,
     },
     {   # L2 Regularization (works with most solvers)
         'penalty': ['l2'],
         'solver': ['newton-cg', 'lbfgs', 'sag', 'saga'],
         'C': c,
         'max_iter': iterations,
-        'tol': tol,
     },
     {   # ElasticNet (only works with saga)
         'penalty': ['elasticnet'],
@@ -70,44 +70,47 @@ param_grid = [
         'l1_ratio': [0.1, 0.5, 0.9],  # Mix of L1/L2
         'C': c,
         'max_iter': iterations,
-        'tol': tol,
     },
     {   # No regularization (None)
         'penalty': [None],
         'solver': ['newton-cg', 'lbfgs', 'sag', 'saga'],
         'max_iter': iterations,
-        'tol': tol,
     }
 ]
 
-# Train with GridSearchCV
-model = GridSearchCV(
-    LogisticRegression(random_state=57,
-                       class_weight='balanced',
-                       # tol=1e-2,
-                       ),
-    param_grid,
+# Train with RandomizedSearchCV
+model = RandomizedSearchCV(
+    estimator=LogisticRegression(random_state=57,
+                                 class_weight='balanced',
+                                 tol=1e-3,
+                                 # reduced tolerance to make program run faster.
+                                 # manual testing with GridSearchCV showed lower tol did not improve results, often exceeding max_iter,
+                                 # and higher tol would cut off too early.
+                                 ),
+
+    param_distributions=param_grid,
+    n_iter=100,
     cv=5,
     scoring='accuracy',
     n_jobs=-1,
-    verbose=1
+    verbose=2,
+    random_state=57
 )
 model.fit(X_train_balanced, y_train_balanced)
-
 print(f"\nBest parameters found: \n{model.best_params_}")
 
 # Evaluate the model - first with the original testing set, then with the balanced testing set
 y_pred = model.predict(X_test_selected)
 
 print(f"\nModel evaluation in the original testing set:")
-print(f"\nAccuracy: {round(accuracy_score(y_test, y_pred), 4) * 100}%", )
+print(f"\nAccuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%", )
 print(f"\nClassification Report:\n", classification_report(y_test, y_pred))
 print(f"\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
 
 y_pred_balanced = model.predict(X_test_balanced)
 
 print(f"\n\nModel evaluation in the balanced testing set (after SMOTE):")
-print(f"\nAccuracy: {round(accuracy_score(y_test_balanced, y_pred_balanced), 4) * 100}%")
+print(f"\nAccuracy: {accuracy_score(y_test_balanced, y_pred_balanced) * 100:.2f}%")
 print(f"\nClassification Report:\n{classification_report(y_test_balanced, y_pred_balanced)}")
 print(f"\nConfusion Matrix:\n{confusion_matrix(y_test_balanced, y_pred_balanced)}")
 
