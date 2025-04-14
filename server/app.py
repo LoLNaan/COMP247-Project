@@ -80,7 +80,7 @@ def predict():
         )
 
         # Make predictions
-        prediction = svm_model.predict(transformed_data_aligned)
+        prediction = model.predict(transformed_data_aligned)
 
         return jsonify({ "prediction": prediction.tolist() })
 
