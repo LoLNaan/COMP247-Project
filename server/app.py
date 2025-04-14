@@ -15,7 +15,8 @@ transformation_pipeline = joblib.load('../data_modeling/transformation_pipeline.
 svm_model = joblib.load('../model_building/svm_model.pkl')
 logreg_model = joblib.load('../model_building/logreg_model.pkl')
 # knn_model = joblib.load('../model_building/knn_model.pkl')
-# rf_model = joblib.load('../model_building/rf_model.pkl')
+rf_model = joblib.load('../model_building/rf_model.pkl')
+neural_network_model = joblib.load('../model_building/neural_network_model.pkl')
 
 print("All models and pipeline loaded successfully.")
 
@@ -62,10 +63,12 @@ def predict():
             model = svm_model
         elif model_name == 'logreg':
             model = logreg_model
+        elif model_name == 'neural_network':
+            model = neural_network_model
+        elif model_name == 'rf':
+            model = rf_model
         # elif model_name == 'knn':
         #     model = knn_model
-        # elif model_name == 'rf':
-        #     model = rf_model
         else:
             return jsonify({ "error": "Invalid model selected" }), 400
 
