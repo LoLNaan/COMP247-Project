@@ -907,3 +907,20 @@ Confusion Matrix:
  [   9 3035]]
 
 --- KNN model ---
+
+Best parameters: {'weights': 'distance', 'n_neighbors': 2}
+Best CV score: 0.940021479779255
+Test accuracy: 0.8715700141442716
+Classification Report: 
+               precision    recall  f1-score   support
+
+       Fatal       0.53      0.70      0.60       491
+   Non-Fatal       0.95      0.90      0.92      3044
+
+    accuracy                           0.87      3535
+   macro avg       0.74      0.80      0.76      3535
+weighted avg       0.89      0.87      0.88      3535
+
+Confusion matrix 
+ [[ 346  145]
+ [ 309 2735]]

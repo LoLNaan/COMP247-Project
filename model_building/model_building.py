@@ -1,6 +1,8 @@
+from matplotlib import pyplot as plt
 import pandas as pd
 import joblib
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import KFold, train_test_split, RandomizedSearchCV
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from imblearn.over_sampling import SMOTE
@@ -307,3 +309,72 @@ Model 5: KNN
 '''
 
 print("\n--- KNN model ---")
+#Creating a KNN instance 
+knn = KNeighborsClassifier()
+print ("\n======Model before finetuing======\n")
+knn = KNeighborsClassifier(n_neighbors = 3)
+knn.fit(X_train_balanced, y_train_balanced)
+y_pred = knn.predict(X_test_selected)
+print("Test accuracy:", accuracy_score(y_test, y_pred))
+print("Classification report:\n",classification_report(y_test, y_pred))
+print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
+
+
+
+print ("\n======Finetuing======\n")
+
+# Define hyperparameters for finetuning 
+kf = KFold(n_splits = 5, shuffle = True, random_state = 93)
+param_grid = {'n_neighbors': np.arange(2,30,1),
+              'weights':['distance','uniform']
+              }
+#Using grid search to fine and using the hyperameters
+grid_search = RandomizedSearchCV(estimator=knn,
+                                 param_distributions=param_grid,
+                                 cv=kf, 
+                                 scoring='accuracy',
+                                 n_iter=20,
+                                 verbose=2,
+                                 n_jobs=-1)
+
+# Fit on the SMOTE-balanced training set
+grid_search.fit(X_train_balanced, y_train_balanced)
+
+#Plotting the accuracy for different number of neighbors for each weight type 
+results = grid_search.cv_results_
+df_results = pd.DataFrame(results)
+
+plt.figure(figsize=(10, 6))
+
+for weight in param_grid['weights']:
+    # Filter rows where weight matches
+    mask = df_results['param_weights'] == weight
+    k_values = df_results[mask]['param_n_neighbors']
+    scores = df_results[mask]['mean_test_score']
+    
+    plt.plot(k_values, scores, label=f'weights = {weight}', marker='o')
+
+plt.title('KNN Accuracy vs Number of Neighbors for Each Weight Type')
+plt.xlabel('Number of Neighbors (k)')
+plt.ylabel('Cross-Validated Accuracy')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+print ("\n======Model after finetuing======\n")
+# Best estimator and score
+print("Best parameters:", grid_search.best_params_)
+print("Best CV score:", grid_search.best_score_)
+
+# Use best model to predict
+best_knn = grid_search.best_estimator_
+y_pred = best_knn.predict(X_test_selected)
+
+# Calculating Accuracy
+print("Test accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report: \n",classification_report(y_test, y_pred))
+print("Confusion matrix \n",confusion_matrix(y_test,y_pred))
+
+joblib.dump(best_knn, r'C:\Users\Jerin Gogi\Downloads\COMP 247\Project\Temp\KNN2_model.pkl')
+
